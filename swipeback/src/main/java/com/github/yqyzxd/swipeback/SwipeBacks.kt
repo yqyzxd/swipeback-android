@@ -48,7 +48,10 @@ class SwipeBacks {
                         filter=cb.onFilter(activity)
                     }
 
-                    println("${activity.javaClass.canonicalName} ${filter}")
+                    activity.javaClass.getAnnotation(DisableSwipeBack::class.java)?.apply {
+                        filter=true
+                    }
+                    //println("${activity.javaClass.canonicalName} ${filter}")
                     if (filter) return
 
 

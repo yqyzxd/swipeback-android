@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
  *  <author> <time> <version> <desc>
  *
  */
+@DisableSwipeBack
 class SwipeBackActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
