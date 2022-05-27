@@ -21,7 +21,7 @@ import androidx.customview.widget.ViewDragHelper
  *  <author> <time> <version> <desc>
  *
  */
-class SwipeBackLayout @JvmOverloads constructor(
+internal class SwipeBackLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
@@ -29,7 +29,7 @@ class SwipeBackLayout @JvmOverloads constructor(
 
     private var mAndroidContentLayoutChild: View? = null
 
-    private var mSwipeListener:ISwipeListener = BuildInSwipeListener(context as Activity?)
+    private var mSwipeListener: ISwipeListener = BuildInSwipeListener(context as Activity?)
     private val mDragHelper = ViewDragHelper.create(this, 1.0f, object : ViewDragHelper.Callback() {
         override fun tryCaptureView(child: View, pointerId: Int): Boolean {
             if (mAndroidContentLayoutChild == null) {
@@ -50,37 +50,49 @@ class SwipeBackLayout @JvmOverloads constructor(
 
         override fun clampViewPositionHorizontal(child: View, left: Int, dx: Int): Int {
             //enable and disable transparent  activity
-            if(left>0){
-                mSwipeListener.onSwiping(left,SwipeState.START)
+            if (left > 0) {
+                mSwipeListener.onSwiping(left, SwipeState.START)
             }
 
             //println("clampViewPositionHorizontal left:$left  dx:$dx")
             return left.coerceAtLeast(0)
         }
 
+        override fun onViewPositionChanged(
+            changedView: View,
+            left: Int,
+            top: Int,
+            dx: Int,
+            dy: Int
+        ) {
+            mAndroidContentLayoutChild?.apply {
+                mYOffset = top
+                mXOffset = left
+            }
 
+        }
 
         override fun onViewDragStateChanged(state: Int) {
             super.onViewDragStateChanged(state)
-            val left=mAndroidContentLayoutChild?.left ?: 0
+            val left = mAndroidContentLayoutChild?.left ?: 0
             //println("onViewDragStateChanged $state  left:$left")
 
-            when(state){
+            when (state) {
                 ViewDragHelper.STATE_IDLE -> {
-                    when(left){
-                        width->{
+                    when (left) {
+                        width -> {
                             //finish
-                            mSwipeListener?.onSwiping(left,SwipeState.FINISH)
+                            mSwipeListener?.onSwiping(left, SwipeState.FINISH)
                         }
 
-                        0->{
-                           // disable tranparent activity
-                            mSwipeListener?.onSwiping(left,SwipeState.RESET)
+                        0 -> {
+                            // disable tranparent activity
+                            mSwipeListener?.onSwiping(left, SwipeState.RESET)
                         }
                     }
                 }
 
-                ViewDragHelper.STATE_DRAGGING,ViewDragHelper.STATE_SETTLING->{
+                ViewDragHelper.STATE_DRAGGING, ViewDragHelper.STATE_SETTLING -> {
 
                 }
 
@@ -106,9 +118,87 @@ class SwipeBackLayout @JvmOverloads constructor(
         setBackgroundColor(Color.TRANSPARENT)
     }
 
+    private var mLastMotionX: Float = 0f
+    private var mLastMotionY: Float = 0f
 
+    private var mActivePointerId = INVALID_POINTER
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-        return  mDragHelper.shouldInterceptTouchEvent(ev)
+        var intercept = false
+
+        val action = ev.action and MotionEvent.ACTION_MASK
+        when (action) {
+            MotionEvent.ACTION_DOWN -> {
+
+                mActivePointerId = ev.getPointerId(0)
+                mLastMotionX = ev.x
+                mLastMotionY = ev.y
+
+                intercept = mDragHelper.shouldInterceptTouchEvent(ev)
+                // println("ACTION_DOWN mDragHelper.shouldInterceptTouchEvent: $intercept")
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                val activePointerId: Int = mActivePointerId
+                if (activePointerId != INVALID_POINTER) {
+
+                    val pointerIndex = ev.findPointerIndex(activePointerId)
+
+                    val x = ev.getX(pointerIndex)
+                    val dx = x - mLastMotionX
+                    val y = ev.getY(pointerIndex)
+
+
+                    val canScroll = canScroll(this, false, dx.toInt(), x.toInt(), y.toInt())
+                    //println("ACTION_MOVE canScroll: $canScroll")
+                    if (dx != 0f /*&& !isGutterDrag(mLastMotionX, dx)*/
+                        && canScroll
+                    ) {
+                        // Nested view has scrollable area under this point. Let it be handled there.
+                        mLastMotionX = x
+                        mLastMotionY = y
+
+                        intercept = false
+                    } else {
+
+                        intercept = mDragHelper.shouldInterceptTouchEvent(ev)
+                        //println("ACTION_MOVE mDragHelper.shouldInterceptTouchEvent: $intercept")
+                    }
+                }
+
+
+            }
+            MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_UP -> {
+                intercept = false
+            }
+
+        }
+        return intercept
+    }
+
+    /**
+     * copy from ViewPager
+     */
+    private fun canScroll(v: View, checkV: Boolean, dx: Int, x: Int, y: Int): Boolean {
+        if (v is ViewGroup) {
+            val group = v
+            val scrollX = v.getScrollX()
+            val scrollY = v.getScrollY()
+            val count = group.childCount
+            // Count backwards - let topmost views consume scroll distance first.
+            for (i in count - 1 downTo 0) {
+                // TODO: Add versioned support here for transformed views.
+                // This will not work for transformed views in Honeycomb+
+                val child = group.getChildAt(i)
+                if (x + scrollX >= child.left && x + scrollX < child.right && y + scrollY >= child.top && y + scrollY < child.bottom && canScroll(
+                        child, true, dx, x + scrollX - child.left,
+                        y + scrollY - child.top
+                    )
+                ) {
+                    return true
+                }
+            }
+        }
+        return checkV && v.canScrollHorizontally(-dx)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -120,10 +210,34 @@ class SwipeBackLayout @JvmOverloads constructor(
     override fun computeScroll() {
         if (mDragHelper.continueSettling(true)) {
             invalidate()
+        } else {
+            mAndroidContentLayoutChild?.apply {
+                mYOffset = top
+                mXOffset = left
+            }
         }
     }
 
-    companion object{
-        const val FAST_VEL=500
+    private var mXOffset: Int = 0
+    private var mYOffset: Int = 0
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        //println("SwipeBackLayout onLayout")
+        /**
+         * 2.防止invalidate后拖动的view复位（跑回初始位置）
+         */
+
+        if (mXOffset != 0 || mYOffset != 0) {
+            mAndroidContentLayoutChild?.apply {
+                offsetLeftAndRight(mXOffset)
+                offsetTopAndBottom(mYOffset)
+            }
+
+        }
+    }
+
+    companion object {
+        const val FAST_VEL = 500
+        const val INVALID_POINTER = -1
     }
 }
