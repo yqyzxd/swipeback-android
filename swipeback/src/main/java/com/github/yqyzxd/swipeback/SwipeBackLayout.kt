@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.customview.widget.ViewDragHelper
+import kotlin.math.absoluteValue
 
 /**
  * Copyright (C), 2015-2022, 杭州迈优文化创意有限公司
@@ -105,7 +106,8 @@ internal class SwipeBackLayout @JvmOverloads constructor(
 
 
     private fun onOnViewReleased(releasedChild: View, xvel: Float, yvel: Float) {
-        if (releasedChild.left >= width / 2 || xvel >= FAST_VEL) {
+
+        if (releasedChild.left >= width / 2 || (xvel.absoluteValue>yvel.absoluteValue && xvel >= FAST_VEL)) {
             mDragHelper.settleCapturedViewAt(width, top)
         } else {
             mDragHelper.settleCapturedViewAt(0, top)
