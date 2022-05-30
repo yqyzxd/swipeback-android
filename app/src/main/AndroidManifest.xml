@@ -21,6 +21,7 @@
         </activity>
 
         <activity android:name=".SwipeBackActivity"
+            android:theme="@style/Theme.SwipeBack.Translucent"
             />
     </application>
 
