@@ -9,7 +9,7 @@ import android.graphics.drawable.ColorDrawable
  * FileName: BuildInSwipeListener
  * Author: wind
  * Date: 2022/5/25 16:44
- * Description: 描述该类的作用
+ * Description: 根据swipelayout滑动状态做出相应动作
  * Path: 路径
  * History:
  *  <author> <time> <version> <desc>
@@ -23,10 +23,8 @@ class BuildInSwipeListener(private val mActivity: Activity?) : ISwipeListener {
             SwipeState.START -> {
                 if (!mStartCalled) {
                     mStartCalled = true
-                    // transparent activity
                     mActivity?.enableTranslucent(true)?.apply {
                         mActivity?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-                        //println("START enableTranslucent $this")
                     }
                 }
             }
@@ -35,19 +33,16 @@ class BuildInSwipeListener(private val mActivity: Activity?) : ISwipeListener {
 
             SwipeState.RESET -> {
                 mStartCalled = false
-                // disable transparent activity
                 mActivity?.enableTranslucent(false)?.apply {
                     mActivity?.window?.setBackgroundDrawable(ColorDrawable(Color.WHITE))
-                   // println("RESET disableTranslucent $this")
                 }
 
             }
             SwipeState.FINISH -> {
-                //finish activity
                 mActivity?.apply {
                     if (isFinishing.not()) {
                         finish()
-                        //println("FINISH")
+                        overridePendingTransition(0,0)
                     }
                 }
 

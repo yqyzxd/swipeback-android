@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.core.app.ActivityCompat
 
 /**
  * Copyright (C), 2015-2022, 杭州迈优文化创意有限公司
@@ -23,11 +25,18 @@ class SwipeBackActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_swipe_back)
+        val tool_bar=findViewById<Toolbar>(R.id.tool_bar)
+        tool_bar.title="Swipe"
+        tool_bar
+        setSupportActionBar(tool_bar)
+        tool_bar
         findViewById<View>(R.id.tv).setOnClickListener {
 
-           Toast.makeText(MainActivity@this,"click",Toast.LENGTH_SHORT).show()
+           //Toast.makeText(MainActivity@this,"click",Toast.LENGTH_SHORT).show()
+            MainActivity@this.finish()
         }
     }
+
 
 
 }

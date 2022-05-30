@@ -108,16 +108,16 @@ internal class SwipeBackLayout @JvmOverloads constructor(
     private fun onOnViewReleased(releasedChild: View, xvel: Float, yvel: Float) {
 
         if (releasedChild.left >= width / 2 || (xvel.absoluteValue>yvel.absoluteValue && xvel >= FAST_VEL)) {
-            mDragHelper.settleCapturedViewAt(width, top)
+            mDragHelper.settleCapturedViewAt(width, mAndroidContentLayoutChild?.top?:0)
         } else {
-            mDragHelper.settleCapturedViewAt(0, top)
+            mDragHelper.settleCapturedViewAt(0, mAndroidContentLayoutChild?.top?:0)
         }
         invalidate()
     }
 
     init {
         mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT)
-        setBackgroundColor(Color.TRANSPARENT)
+        setBackgroundColor(Color.parseColor("#33000000"))
     }
 
     private var mLastMotionX: Float = 0f
@@ -224,7 +224,7 @@ internal class SwipeBackLayout @JvmOverloads constructor(
     private var mYOffset: Int = 0
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        //println("SwipeBackLayout onLayout")
+       // println("SwipeBackLayout onLayout mXOffset:$mXOffset mYOffset:$mYOffset")
         /**
          * 2.防止invalidate后拖动的view复位（跑回初始位置）
          */
