@@ -35,7 +35,7 @@ class BuildInSwipeListener(private val mActivity: Activity?) : ISwipeListener {
                                 .invoke(window) ?: false
                         }
                     }
-                    println("mActivitytTranslucent :$mActivitytTranslucent")
+                    //println("mActivitytTranslucent :$mActivitytTranslucent")
                     mActivitytTranslucent?.apply {
                         if (this.not()){
                             mActivity?.enableTranslucent(true)?.apply {
