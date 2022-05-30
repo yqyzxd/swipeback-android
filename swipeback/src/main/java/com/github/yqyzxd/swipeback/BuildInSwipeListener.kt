@@ -3,6 +3,7 @@ package com.github.yqyzxd.swipeback
 import android.app.Activity
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 
 /**
  * Copyright (C), 2015-2022, 杭州迈优文化创意有限公司
@@ -17,6 +18,7 @@ import android.graphics.drawable.ColorDrawable
  */
 class BuildInSwipeListener(private val mActivity: Activity?) : ISwipeListener {
     private var mStartCalled = false
+    private var mWindowBackground:Drawable?=null
     override fun onSwiping(left: Int, state: SwipeState) {
 
         when (state) {
@@ -24,6 +26,10 @@ class BuildInSwipeListener(private val mActivity: Activity?) : ISwipeListener {
                 if (!mStartCalled) {
                     mStartCalled = true
                     mActivity?.enableTranslucent(true)?.apply {
+                        if (mWindowBackground==null){
+                            mWindowBackground = mActivity?.window?.decorView?.background
+                        }
+                        println("mWindowBackground $mWindowBackground")
                         mActivity?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
                     }
                 }
@@ -34,7 +40,15 @@ class BuildInSwipeListener(private val mActivity: Activity?) : ISwipeListener {
             SwipeState.RESET -> {
                 mStartCalled = false
                 mActivity?.enableTranslucent(false)?.apply {
-                    mActivity?.window?.setBackgroundDrawable(ColorDrawable(Color.WHITE))
+                    mActivity?.window?.apply {
+                        if (mWindowBackground!=null){
+                            setBackgroundDrawable(mWindowBackground)
+                        }else{
+                            setBackgroundDrawable(ColorDrawable(Color.WHITE))
+                        }
+                    }
+
+
                 }
 
             }

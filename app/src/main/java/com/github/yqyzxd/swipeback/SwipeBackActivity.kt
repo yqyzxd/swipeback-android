@@ -27,7 +27,6 @@ class SwipeBackActivity : AppCompatActivity() {
         setContentView(R.layout.activity_swipe_back)
         val tool_bar=findViewById<Toolbar>(R.id.tool_bar)
         tool_bar.title="Swipe"
-        tool_bar
         setSupportActionBar(tool_bar)
         tool_bar
         findViewById<View>(R.id.tv).setOnClickListener {
